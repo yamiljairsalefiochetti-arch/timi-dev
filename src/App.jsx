@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Code2, 
+  Menu,
   Zap, 
   Smartphone, 
   TrendingUp, 
@@ -27,12 +28,11 @@ import {
   Flame,
   Award
 } from 'lucide-react';
+import { getWhatsAppLink } from './whatsapp.js';
 
 // ==========================================
 // CONFIGURACIÓN GLOBAL DE TIMI.DEV
 // ==========================================
-const WHATSAPP_NUMBER = "+54 9 261 600 2822"; // Reemplazar con tu número real de Mendoza
-
 function useScrollReveal(triggerKey) {
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -174,7 +174,7 @@ function TiendaRopaDemo({ onVolver }) {
       msg += `*${idx + 1}. ${i.nombre}* (${i.talle} / ${i.color}) - Cant: ${i.cantidad} x $${i.precio.toLocaleString('es-AR')}\n`;
     });
     msg += `\n💳 *TOTAL: $${totalCarrito.toLocaleString('es-AR')} ARS*\n¿Tienen stock disponible para transferir?`;
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(getWhatsAppLink(msg), '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -331,7 +331,7 @@ function GastroDemo({ onVolver }) {
 
   const enviarReservaWhatsApp = () => {
     let msg = `🍷 *¡Hola Los Toneles! Quisiera reservar una mesa:*\n👥 Comensales: ${personas}\n📅 Fecha: ${fecha}\n⏰ Hora: ${hora} hs\n¿Tienen disponibilidad?`;
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(getWhatsAppLink(msg), '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -416,7 +416,7 @@ function TechDemo({ onVolver }) {
 
   const solicitarTurnoWhatsApp = () => {
     let msg = `🔧 *¡Hola Mendoza Fix! Solicito turno técnico:*\n📱 Dispositivo: ${equipo}\n⚠️ Falla: ${falla}\n💰 Est: $${PRECIOS_TECH[falla].toLocaleString('es-AR')}\n¿Tienen turno?`;
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(getWhatsAppLink(msg), '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -482,6 +482,7 @@ function TechDemo({ onVolver }) {
 // ==========================================
 export default function App() {
   const [demoActiva, setDemoActiva] = useState(null); // null, 'ropa', 'gastro', 'tech'
+  const [menuAbierto, setMenuAbierto] = useState(false);
   useScrollReveal(demoActiva);
 
   const [planBase, setPlanBase] = useState('express');
@@ -506,7 +507,7 @@ export default function App() {
     if (extraSoporte) mensaje += ` • Soporte Mensual ($35.000)\n`;
     mensaje += `\n💰 *TOTAL ESTIMADO: $${totalPresupuesto.toLocaleString('es-AR')} ARS*\n¿Coordinamos llamada?`;
 
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(mensaje)}`, '_blank');
+    window.open(getWhatsAppLink(mensaje), '_blank', 'noopener,noreferrer');
   };
 
   // RENDERIZADO CONDICIONAL DE DEMOS
@@ -543,14 +544,44 @@ export default function App() {
           </nav>
 
           <a 
-            href={`https://wa.me/${WHATSAPP_NUMBER}?text=Hola%20timi.dev!%20Quisiera%20consultar%20por%20una%20web`}
+            href={getWhatsAppLink('Hola timi.dev! Quisiera consultar por una web')}
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-5 py-2.5 rounded-xl text-sm transition-all duration-300 shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:-translate-y-0.5 flex items-center gap-2"
+            className="hidden sm:flex bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-5 py-2.5 rounded-xl text-sm transition-all duration-300 shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:-translate-y-0.5 items-center gap-2"
           >
             <MessageSquare className="w-4 h-4 fill-slate-950" /> Hablar por WhatsApp
           </a>
+          <button
+            type="button"
+            onClick={() => setMenuAbierto(!menuAbierto)}
+            className="md:hidden rounded-xl border border-slate-700 bg-slate-900 p-2.5 text-slate-200"
+            aria-label={menuAbierto ? 'Cerrar menú' : 'Abrir menú'}
+            aria-expanded={menuAbierto}
+            aria-controls="mobile-navigation"
+          >
+            {menuAbierto ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
+        {menuAbierto && (
+          <nav id="mobile-navigation" className="grid grid-cols-2 gap-2 border-t border-slate-800 bg-slate-950/95 px-4 py-4 text-sm md:hidden">
+            {[
+              ['Ventajas', '#ventajas'],
+              ['Tecnología', '#stack'],
+              ['Portafolio', '#portafolio'],
+              ['Metodología', '#metodologia'],
+              ['Precios', '#precios'],
+              ['Cotizador', '#cotizador'],
+              ['Preguntas', '#faq'],
+            ].map(([label, href]) => (
+              <a key={href} href={href} onClick={() => setMenuAbierto(false)} className="rounded-lg px-3 py-2.5 text-slate-300 transition hover:bg-slate-900 hover:text-emerald-400">
+                {label}
+              </a>
+            ))}
+            <a href={getWhatsAppLink('Hola timi.dev! Quisiera consultar por una web')} target="_blank" rel="noopener noreferrer" className="col-span-2 mt-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 font-bold text-slate-950">
+              <MessageSquare className="h-4 w-4" /> Hablar por WhatsApp
+            </a>
+          </nav>
+        )}
       </header>
 
       {/* HERO SECTION CON ANIMACIÓN DENSAMENTE VISUAL */}
@@ -595,7 +626,7 @@ export default function App() {
               </span>
             </div>
             
-            <div className="grid grid-cols-4 gap-4 text-center">
+            <div className="grid grid-cols-2 gap-4 text-center sm:grid-cols-4">
               <div className="p-2 rounded-xl hover:bg-slate-800/50 transition"><div className="text-xl sm:text-2xl font-black text-emerald-400 font-mono">100</div><div className="text-[10px] sm:text-xs text-slate-400 font-mono mt-1">Rendimiento</div></div>
               <div className="p-2 rounded-xl hover:bg-slate-800/50 transition"><div className="text-xl sm:text-2xl font-black text-emerald-400 font-mono">100</div><div className="text-[10px] sm:text-xs text-slate-400 font-mono mt-1">Accesibilidad</div></div>
               <div className="p-2 rounded-xl hover:bg-slate-800/50 transition"><div className="text-xl sm:text-2xl font-black text-emerald-400 font-mono">100</div><div className="text-[10px] sm:text-xs text-slate-400 font-mono mt-1">Prácticas</div></div>
@@ -785,7 +816,7 @@ export default function App() {
                   <li className="flex items-center gap-2.5"><Check className="w-4 h-4 text-emerald-400" /> Entrega rápida en 5 días</li>
                 </ul>
               </div>
-              <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=Interesa%20Plan%20Express`} target="_blank" rel="noopener noreferrer" className="mt-8 w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 rounded-xl text-center text-sm block transition">Elegir Plan Express</a>
+              <a href={getWhatsAppLink('Me interesa el Plan Express')} target="_blank" rel="noopener noreferrer" className="mt-8 w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 rounded-xl text-center text-sm block transition">Elegir Plan Express</a>
             </div>
 
             <div className="bg-slate-900 border-2 border-emerald-500 p-8 rounded-2xl flex flex-col justify-between relative shadow-2xl shadow-emerald-500/10 reveal-on-scroll">
@@ -800,7 +831,7 @@ export default function App() {
                   <li className="flex items-center gap-2.5"><Check className="w-4 h-4 text-emerald-400" /> Galería de servicios y contacto</li>
                 </ul>
               </div>
-              <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=Interesa%20Plan%20Comercial`} target="_blank" rel="noopener noreferrer" className="mt-8 w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3.5 rounded-xl text-center text-sm block shadow-lg shadow-emerald-500/25 transition">Elegir Plan Comercial</a>
+              <a href={getWhatsAppLink('Me interesa el Plan Comercial')} target="_blank" rel="noopener noreferrer" className="mt-8 w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3.5 rounded-xl text-center text-sm block shadow-lg shadow-emerald-500/25 transition">Elegir Plan Comercial</a>
             </div>
 
             <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl flex flex-col justify-between reveal-on-scroll hover:border-emerald-500/40 transition">
@@ -814,7 +845,7 @@ export default function App() {
                   <li className="flex items-center gap-2.5"><Check className="w-4 h-4 text-emerald-400" /> Envío de pedido a WhatsApp</li>
                 </ul>
               </div>
-              <a href={`https://wa.me/${WHATSAPP_NUMBER}?text=Interesa%20Plan%20Catalogo`} target="_blank" rel="noopener noreferrer" className="mt-8 w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 rounded-xl text-center text-sm block transition">Elegir Plan Catálogo</a>
+              <a href={getWhatsAppLink('Me interesa el Plan Catálogo')} target="_blank" rel="noopener noreferrer" className="mt-8 w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 rounded-xl text-center text-sm block transition">Elegir Plan Catálogo</a>
             </div>
           </div>
         </div>
@@ -912,12 +943,26 @@ export default function App() {
             <span className="text-lg font-black text-white">timi<span className="text-emerald-400">.dev</span></span>
           </div>
           <p className="text-xs text-slate-500">© 2026 timi.dev — Desarrollo de páginas web de alto rendimiento. Mendoza, Argentina.</p>
-          <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer" className="text-xs text-emerald-400 hover:underline font-mono">WhatsApp Directo</a>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <a href="https://www.facebook.com/Timi%20Dev" target="_blank" rel="noopener noreferrer" aria-label="Facebook de timi.dev" className="inline-flex items-center gap-2 text-xs text-slate-400 transition hover:text-white">
+              <span aria-hidden="true" className="font-sans text-base font-black leading-none text-emerald-400">f</span>
+              Facebook
+            </a>
+            <a href="https://www.instagram.com/timi_dev404/" target="_blank" rel="noopener noreferrer" aria-label="Instagram de timi.dev" className="inline-flex items-center gap-2 text-xs text-slate-400 transition hover:text-white">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4 text-emerald-400">
+                <rect x="3" y="3" width="18" height="18" rx="5" />
+                <circle cx="12" cy="12" r="4" />
+                <circle cx="17.5" cy="6.5" r=".75" fill="currentColor" stroke="none" />
+              </svg>
+              Instagram
+            </a>
+            <a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer" className="text-xs text-emerald-400 hover:underline font-mono">WhatsApp Directo</a>
+          </div>
         </div>
       </footer>
 
       {/* BOTÓN FLOTANTE CON EFECTO PULSE / WING ANIMADO */}
-      <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer" className="fixed bottom-6 right-6 z-50 bg-emerald-500 hover:bg-emerald-400 text-slate-950 p-4 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 flex items-center justify-center border border-emerald-400 group" aria-label="WhatsApp">
+      <a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer" className="fixed bottom-6 right-6 z-50 hidden rounded-full border border-emerald-400 bg-emerald-500 p-4 text-slate-950 shadow-2xl transition-all duration-300 hover:scale-110 hover:bg-emerald-400 sm:flex items-center justify-center group" aria-label="WhatsApp">
         <span className="absolute -inset-1 rounded-full bg-emerald-500/30 animate-ping pointer-events-none"></span>
         <MessageSquare className="w-6 h-6 relative z-10 fill-slate-950 group-hover:rotate-12 transition-transform" />
       </a>

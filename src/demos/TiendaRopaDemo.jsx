@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ShoppingBag, X, Plus, Minus, Send, Check, Filter, Heart } from 'lucide-react';
+import { getWhatsAppLink } from '../whatsapp.js';
 
 const PRODUCTOS = [
   {
@@ -64,7 +65,7 @@ const PRODUCTOS = [
   }
 ];
 
-export default function TiendaRopaDemo() {
+export default function TiendaRopaDemo({ onVolver }) {
   const [categoriaSel, setCategoriaSel] = useState('Todos');
   const [carrito, setCarrito] = useState([]);
   const [carritoAbierto, setCarritoAbierto] = useState(false);
@@ -147,8 +148,7 @@ export default function TiendaRopaDemo() {
     mensaje += "📍 *Método de entrega:* Envío a domicilio en Mendoza / Retiro por showroom\n";
     mensaje += "¿Me confirman el stock para proceder con la transferencia?";
 
-    const url = `https://wa.me/5492610000000?text=${encodeURIComponent(mensaje)}`;
-    window.open(url, '_blank');
+    window.open(getWhatsAppLink(mensaje), '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -158,7 +158,7 @@ export default function TiendaRopaDemo() {
       <div className="bg-emerald-500/10 border-b border-emerald-500/20 text-emerald-400 py-2 px-4 text-center text-xs sm:text-sm font-mono flex items-center justify-between">
         <span className="truncate">⚡ DEMO INTERACTIVA CREADA POR <strong>TIMI.DEV</strong></span>
         <button 
-          onClick={() => window.history.back()}
+          onClick={onVolver}
           className="bg-emerald-500 text-slate-950 font-sans font-semibold px-3 py-1 rounded-md text-xs hover:bg-emerald-400 transition"
         >
           Volver a timi.dev
