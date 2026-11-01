@@ -24,11 +24,16 @@ import {
   HelpCircle,
   Layers,
   Globe,
+  MapPin,
   Star,
   Flame,
   Award
 } from 'lucide-react';
 import { getWhatsAppLink } from './whatsapp.js';
+import BienestarDemo from './demos/BienestarDemo.jsx';
+import InmobiliariaDemo from './demos/InmobiliariaDemo.jsx';
+import TurismoDemo from './demos/TurismoDemo.jsx';
+import MetalurgicaDemo from './demos/MetalurgicaDemo.jsx';
 
 // ==========================================
 // CONFIGURACIÓN GLOBAL DE TIMI.DEV
@@ -145,23 +150,21 @@ function TiendaRopaDemo({ onVolver }) {
 
   const agregarAlCarrito = () => {
     if (!modalProducto) return;
-    const idx = carrito.findIndex(i => i.id === modalProducto.id && i.talle === talleSel && i.color === colorSel);
-    if (idx > -1) {
-      const nc = [...carrito];
-      nc[idx].cantidad += 1;
-      setCarrito(nc);
-    } else {
-      setCarrito([...carrito, { ...modalProducto, talle: talleSel, color: colorSel, cantidad: 1 }]);
-    }
+    setCarrito((actual) => {
+      const idx = actual.findIndex((item) => item.id === modalProducto.id && item.talle === talleSel && item.color === colorSel);
+      if (idx > -1) {
+        return actual.map((item, index) => index === idx ? { ...item, cantidad: item.cantidad + 1 } : item);
+      }
+      return [...actual, { ...modalProducto, talle: talleSel, color: colorSel, cantidad: 1 }];
+    });
     setModalProducto(null);
     setCarritoAbierto(true);
   };
 
   const cambiarCantidad = (idx, delta) => {
-    const nc = [...carrito];
-    nc[idx].cantidad += delta;
-    if (nc[idx].cantidad <= 0) nc.splice(idx, 1);
-    setCarrito(nc);
+    setCarrito((actual) => actual
+      .map((item, index) => index === idx ? { ...item, cantidad: item.cantidad + delta } : item)
+      .filter((item) => item.cantidad > 0));
   };
 
   const totalCarrito = carrito.reduce((acc, i) => acc + (i.precio * i.cantidad), 0);
@@ -179,9 +182,9 @@ function TiendaRopaDemo({ onVolver }) {
 
   return (
     <div className="min-h-screen bg-stone-50 text-stone-900 font-serif">
-      <div className="bg-stone-900 text-stone-200 py-3 px-4 text-center text-xs font-sans flex items-center justify-between sticky top-0 z-50 border-b border-stone-800 shadow-md">
+      <div className="bg-stone-900 text-stone-200 py-3 px-4 text-center text-xs font-sans flex items-center justify-between gap-2 sticky top-0 z-50 border-b border-stone-800 shadow-md">
         <span className="truncate">✨ DEMO TIENDA DE ROPA — DESARROLLADO POR <strong>TIMI.DEV</strong></span>
-        <button onClick={onVolver} className="bg-emerald-500 text-slate-950 font-bold px-4 py-1.5 rounded text-xs hover:bg-emerald-400 font-sans transition shadow-lg">
+        <button onClick={onVolver} className="shrink-0 bg-emerald-500 text-slate-950 font-bold px-3 sm:px-4 py-2 rounded text-xs hover:bg-emerald-400 font-sans transition shadow-lg">
           Volver a timi.dev
         </button>
       </div>
@@ -202,9 +205,9 @@ function TiendaRopaDemo({ onVolver }) {
       <section className="py-16 px-6 text-center bg-stone-100 border-b border-stone-200">
         <span className="text-xs uppercase tracking-[0.3em] text-stone-500 font-sans">Colección 2026</span>
         <h2 className="text-3xl sm:text-5xl font-normal text-stone-900 mt-2 tracking-tight">Elegancia Minimalista</h2>
-        <div className="flex justify-center gap-3 mt-8 overflow-x-auto pb-2 font-sans">
+        <div className="-mx-4 flex justify-start gap-3 overflow-x-auto px-4 pb-2 font-sans sm:mx-0 sm:justify-center sm:px-0">
           {categorias.map(cat => (
-            <button key={cat} onClick={() => setCategoriaSel(cat)} className={`px-5 py-2 rounded-full text-xs font-medium tracking-wider uppercase transition ${categoriaSel === cat ? 'bg-stone-900 text-white' : 'bg-white text-stone-600 border border-stone-200 hover:border-stone-400'}`}>
+            <button key={cat} onClick={() => setCategoriaSel(cat)} aria-pressed={categoriaSel === cat} className={`shrink-0 px-5 py-2 rounded-full text-xs font-medium tracking-wider uppercase transition ${categoriaSel === cat ? 'bg-stone-900 text-white' : 'bg-white text-stone-600 border border-stone-200 hover:border-stone-400'}`}>
               {cat}
             </button>
           ))}
@@ -217,7 +220,7 @@ function TiendaRopaDemo({ onVolver }) {
             <div key={prod.id} className="bg-white border border-stone-200 rounded-lg overflow-hidden flex flex-col justify-between group shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <div>
                 <div className="aspect-[4/5] overflow-hidden bg-stone-100 relative">
-                  <img src={prod.imagen} alt={prod.nombre} className="w-full h-full object-cover group-hover:scale-110 transition duration-700" />
+                  <img src={prod.imagen} alt={prod.nombre} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition duration-700" />
                 </div>
                 <div className="p-5">
                   <span className="text-[10px] uppercase tracking-widest text-stone-400">{prod.categoria}</span>
@@ -354,9 +357,9 @@ function GastroDemo({ onVolver }) {
 
       <section className="max-w-5xl mx-auto px-6 py-12 font-sans">
         <h2 className="text-center text-2xl font-bold text-amber-400 uppercase tracking-widest font-serif mb-8">Nuestra Carta Digital</h2>
-        <div className="flex justify-center gap-3 mb-8">
+        <div className="-mx-6 flex justify-start gap-3 overflow-x-auto px-6 pb-2 sm:mx-0 sm:justify-center sm:px-0">
           {['Entradas', 'Parrilla', 'Vinos', 'Postres'].map(cat => (
-            <button key={cat} onClick={() => setCatSel(cat)} className={`px-5 py-2 rounded-full text-xs font-bold transition-all duration-300 ${catSel === cat ? 'bg-amber-500 text-stone-950 shadow-lg shadow-amber-500/20' : 'bg-stone-900 text-amber-200 border border-amber-900/40'}`}>{cat}</button>
+            <button key={cat} onClick={() => setCatSel(cat)} aria-pressed={catSel === cat} className={`shrink-0 px-5 py-2 rounded-full text-xs font-bold transition-all duration-300 ${catSel === cat ? 'bg-amber-500 text-stone-950 shadow-lg shadow-amber-500/20' : 'bg-stone-900 text-amber-200 border border-amber-900/40'}`}>{cat}</button>
           ))}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -376,7 +379,7 @@ function GastroDemo({ onVolver }) {
       <section className="bg-stone-900 border-t border-amber-900/40 py-12 px-6 font-sans">
         <div className="max-w-xl mx-auto text-center">
           <h3 className="text-2xl font-bold font-serif text-amber-400">Reservá tu Mesa al Instante</h3>
-          <div className="grid grid-cols-3 gap-3 mt-6">
+          <div className="grid grid-cols-1 gap-3 mt-6 sm:grid-cols-3">
             <div>
               <label className="text-[10px] text-amber-400 uppercase font-bold block mb-1">Personas</label>
               <select value={personas} onChange={e => setPersonas(e.target.value)} className="w-full bg-stone-950 border border-amber-900/50 rounded p-2 text-xs text-amber-100">
@@ -446,9 +449,9 @@ function TechDemo({ onVolver }) {
           <div className="space-y-4">
             <div>
               <label className="text-xs text-slate-400 font-bold uppercase block mb-2">1. Dispositivo:</label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 {['iPhone', 'Android', 'Notebook'].map(eq => (
-                  <button key={eq} onClick={() => setEquipo(eq)} className={`py-2.5 rounded-lg text-xs font-bold border transition ${equipo === eq ? 'bg-sky-500 text-slate-950 border-sky-400 shadow-md' : 'bg-slate-900 border-slate-800 text-slate-300'}`}>{eq}</button>
+                <button key={eq} onClick={() => setEquipo(eq)} aria-pressed={equipo === eq} className={`py-2.5 rounded-lg text-xs font-bold border transition ${equipo === eq ? 'bg-sky-500 text-slate-950 border-sky-400 shadow-md' : 'bg-slate-900 border-slate-800 text-slate-300'}`}>{eq}</button>
                 ))}
               </div>
             </div>
@@ -481,7 +484,7 @@ function TechDemo({ onVolver }) {
 // COMPONENTE PRINCIPAL TIMI.DEV (LANDING VIVA Y ANIMADA)
 // ==========================================
 export default function App() {
-  const [demoActiva, setDemoActiva] = useState(null); // null, 'ropa', 'gastro', 'tech'
+  const [demoActiva, setDemoActiva] = useState(null);
   const [menuAbierto, setMenuAbierto] = useState(false);
   useScrollReveal(demoActiva);
 
@@ -514,6 +517,10 @@ export default function App() {
   if (demoActiva === 'ropa') return <TiendaRopaDemo onVolver={() => setDemoActiva(null)} />;
   if (demoActiva === 'gastro') return <GastroDemo onVolver={() => setDemoActiva(null)} />;
   if (demoActiva === 'tech') return <TechDemo onVolver={() => setDemoActiva(null)} />;
+  if (demoActiva === 'bienestar') return <BienestarDemo onVolver={() => setDemoActiva(null)} />;
+  if (demoActiva === 'inmobiliaria') return <InmobiliariaDemo onVolver={() => setDemoActiva(null)} />;
+  if (demoActiva === 'turismo') return <TurismoDemo onVolver={() => setDemoActiva(null)} />;
+  if (demoActiva === 'metalurgica') return <MetalurgicaDemo onVolver={() => setDemoActiva(null)} />;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-emerald-500 selection:text-slate-950 relative overflow-hidden">
@@ -602,7 +609,7 @@ export default function App() {
           </h1>
 
           <p className="mt-6 text-lg sm:text-xl text-slate-300 leading-relaxed font-normal">
-            Creamos tu sitio web con el stack tecnológico de las empresas líderes. Carga instantánea en celulares, posicionamiento SEO local e integración comercial con WhatsApp.
+            Diseñamos y desarrollamos sitios web para negocios de Mendoza, con experiencia adaptable a celulares, estructura SEO local e integración comercial con WhatsApp.
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -615,22 +622,22 @@ export default function App() {
           </div>
 
           <div className="mt-16 p-6 rounded-2xl bg-slate-900/80 border border-slate-800/80 backdrop-blur-xl max-w-2xl mx-auto shadow-2xl hover:border-emerald-500/40 transition-all duration-500">
-            <div className="flex items-center justify-between border-b border-slate-800/80 pb-4 mb-4">
-              <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
-                <Gauge className="w-4 h-4 text-emerald-400" />
-                <span>Auditoría Google PageSpeed</span>
-              </div>
-              <span className="text-xs font-mono bg-emerald-950/80 text-emerald-400 px-3 py-1 rounded-md border border-emerald-800/60 font-bold flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                100/100 Rendimiento
-              </span>
+            <div className="flex items-center gap-2 border-b border-slate-800/80 pb-4 mb-4 text-xs font-mono text-slate-400">
+              <Gauge className="w-4 h-4 text-emerald-400" />
+              <span>Aspectos que cuidamos en cada proyecto</span>
             </div>
-            
-            <div className="grid grid-cols-2 gap-4 text-center sm:grid-cols-4">
-              <div className="p-2 rounded-xl hover:bg-slate-800/50 transition"><div className="text-xl sm:text-2xl font-black text-emerald-400 font-mono">100</div><div className="text-[10px] sm:text-xs text-slate-400 font-mono mt-1">Rendimiento</div></div>
-              <div className="p-2 rounded-xl hover:bg-slate-800/50 transition"><div className="text-xl sm:text-2xl font-black text-emerald-400 font-mono">100</div><div className="text-[10px] sm:text-xs text-slate-400 font-mono mt-1">Accesibilidad</div></div>
-              <div className="p-2 rounded-xl hover:bg-slate-800/50 transition"><div className="text-xl sm:text-2xl font-black text-emerald-400 font-mono">100</div><div className="text-[10px] sm:text-xs text-slate-400 font-mono mt-1">Prácticas</div></div>
-              <div className="p-2 rounded-xl hover:bg-slate-800/50 transition"><div className="text-xl sm:text-2xl font-black text-emerald-400 font-mono">100</div><div className="text-[10px] sm:text-xs text-slate-400 font-mono mt-1">SEO Google</div></div>
+            <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
+              {[
+                ['Rendimiento', 'Código liviano'],
+                ['Experiencia móvil', 'Diseño adaptable'],
+                ['SEO técnico', 'Estructura clara'],
+                ['Contacto', 'WhatsApp integrado'],
+              ].map(([titulo, detalle]) => (
+                <div key={titulo} className="rounded-xl p-3 transition hover:bg-slate-800/50">
+                  <div className="text-sm font-bold text-emerald-400">{titulo}</div>
+                  <div className="mt-1 text-[10px] text-slate-400 sm:text-xs">{detalle}</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -644,22 +651,47 @@ export default function App() {
             <p className="text-3xl sm:text-4xl font-black text-white mt-2">Tecnología moderna pensada para ventas reales.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-4">
             <div className="bg-slate-900/80 border border-slate-800 p-8 rounded-2xl hover:border-emerald-500/50 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-500 hover:-translate-y-2 reveal-on-scroll backdrop-blur-md group">
               <div className="bg-emerald-500/10 border border-emerald-500/30 w-12 h-12 rounded-xl flex items-center justify-center text-emerald-400 mb-6 group-hover:scale-110 group-hover:bg-emerald-500/20 transition-all"><Zap className="w-6 h-6" /></div>
               <h3 className="text-xl font-bold text-white">Velocidad Extrema (React + Vite)</h3>
-              <p className="mt-3 text-slate-400 text-sm leading-relaxed">Sin plantillas pesadas de WordPress. Tu web carga en menos de 1 segundo en celulares con 4G o 5G en Mendoza.</p>
+              <p className="mt-3 text-slate-400 text-sm leading-relaxed">Priorizamos una implementación liviana y una navegación clara para que tus clientes encuentren lo importante desde el celular.</p>
             </div>
             <div className="bg-slate-900/80 border border-slate-800 p-8 rounded-2xl hover:border-emerald-500/50 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-500 hover:-translate-y-2 reveal-on-scroll backdrop-blur-md group">
               <div className="bg-emerald-500/10 border border-emerald-500/30 w-12 h-12 rounded-xl flex items-center justify-center text-emerald-400 mb-6 group-hover:scale-110 group-hover:bg-emerald-500/20 transition-all"><Smartphone className="w-6 h-6" /></div>
               <h3 className="text-xl font-bold text-white">Directo a tu WhatsApp</h3>
-              <p className="mt-3 text-slate-400 text-sm leading-relaxed">El 85% del tráfico se genera en móviles. Diseñamos con botones flotantes y mensajes de compra directos.</p>
+              <p className="mt-3 text-slate-400 text-sm leading-relaxed">Diseñamos pensando primero en celulares, con accesos claros y mensajes de consulta o compra directos.</p>
             </div>
             <div className="bg-slate-900/80 border border-slate-800 p-8 rounded-2xl hover:border-emerald-500/50 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-500 hover:-translate-y-2 reveal-on-scroll backdrop-blur-md group">
               <div className="bg-emerald-500/10 border border-emerald-500/30 w-12 h-12 rounded-xl flex items-center justify-center text-emerald-400 mb-6 group-hover:scale-110 group-hover:bg-emerald-500/20 transition-all"><TrendingUp className="w-6 h-6" /></div>
               <h3 className="text-xl font-bold text-white">Optimizado para Google (SEO Local)</h3>
               <p className="mt-3 text-slate-400 text-sm leading-relaxed">Estructura SEO limpia y etiquetado inteligente para posicionar cuando busquen tus productos o servicios en Mendoza.</p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="servicios-web" className="border-b border-slate-800/60 bg-slate-900/20 py-16 sm:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-3xl text-center reveal-on-scroll">
+            <span className="text-xs font-bold uppercase tracking-widest text-emerald-400 font-mono">Diseño web en Mendoza</span>
+            <h2 className="mt-2 text-3xl font-extrabold text-white sm:text-4xl">Soluciones web para negocios que quieren crecer.</h2>
+            <p className="mt-4 text-sm leading-relaxed text-slate-400 sm:text-base">
+              timi.dev diseña y desarrolla páginas web para comercios, profesionales y pymes de Mendoza, Argentina. Cada proyecto se adapta a celulares y puede integrar consultas o pedidos directos por WhatsApp.
+            </p>
+          </div>
+          <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              ['Landing pages', 'Páginas enfocadas en presentar un servicio y facilitar consultas.'],
+              ['Sitios web comerciales', 'Secciones para comunicar tu negocio, servicios y formas de contacto.'],
+              ['Catálogos y tiendas online', 'Productos organizados para explorar y consultar o pedir por WhatsApp.'],
+              ['SEO local', 'Estructura y contenido claros para que las personas encuentren tu negocio en búsquedas locales.'],
+            ].map(([titulo, descripcion]) => (
+              <article key={titulo} className="rounded-2xl border border-slate-800 bg-slate-900/80 p-5 sm:p-6">
+                <h3 className="font-bold text-white">{titulo}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-400">{descripcion}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
@@ -761,6 +793,86 @@ export default function App() {
             </div>
             <div className="p-6 pt-0">
               <button onClick={() => setDemoActiva('tech')} className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold py-3.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm shadow-lg shadow-emerald-500/20">
+                Ver Demo Live <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:border-emerald-500/60 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-500 flex flex-col justify-between group reveal-on-scroll hover:-translate-y-2">
+            <div>
+              <div className="relative aspect-video overflow-hidden bg-slate-950">
+                <img src="https://images.unsplash.com/photo-1600334129128-685c5582fd35?q=80&w=800&auto=format&fit=crop" alt="Espacio de bienestar y cuidado personal" loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition duration-700" />
+                <span className="absolute top-3 right-3 bg-rose-200 text-rose-950 font-extrabold text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md shadow-lg flex items-center gap-1">
+                  Turnos Online
+                </span>
+              </div>
+              <div className="p-6">
+                <div className="flex items-center gap-2 text-emerald-400 text-xs font-semibold uppercase tracking-wider"><Sparkles className="w-4 h-4" /> Belleza & Bienestar</div>
+                <h3 className="text-xl font-bold text-white mt-2">Casa Calma - Estética & Spa</h3>
+                <p className="text-slate-400 text-sm mt-2">Servicios, precios y agenda con solicitud de turnos desde el celular.</p>
+              </div>
+            </div>
+            <div className="p-6 pt-0">
+              <button onClick={() => setDemoActiva('bienestar')} className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold py-3.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm shadow-lg shadow-emerald-500/20">
+                Ver Demo Live <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:border-emerald-500/60 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-500 flex flex-col justify-between group reveal-on-scroll hover:-translate-y-2">
+            <div>
+              <div className="relative aspect-video overflow-hidden bg-slate-950">
+                <img src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?q=80&w=800&auto=format&fit=crop" alt="Casa moderna en venta en Mendoza" loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition duration-700" />
+                <span className="absolute top-3 right-3 bg-lime-300 text-emerald-950 font-extrabold text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md shadow-lg flex items-center gap-1">
+                  Búsqueda Activa
+                </span>
+              </div>
+              <div className="p-6">
+                <div className="flex items-center gap-2 text-emerald-400 text-xs font-semibold uppercase tracking-wider"><Globe className="w-4 h-4" /> Inmobiliarias</div>
+                <h3 className="text-xl font-bold text-white mt-2">Raíz - Propiedades en Mendoza</h3>
+                <p className="text-slate-400 text-sm mt-2">Catálogo filtrable por operación y zona, con consultas directas por propiedad.</p>
+              </div>
+            </div>
+            <div className="p-6 pt-0">
+              <button onClick={() => setDemoActiva('inmobiliaria')} className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold py-3.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm shadow-lg shadow-emerald-500/20">
+                Ver Demo Live <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:border-emerald-500/60 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-500 flex flex-col justify-between group reveal-on-scroll hover:-translate-y-2">
+            <div>
+              <div className="relative aspect-video overflow-hidden bg-slate-950">
+                <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800&auto=format&fit=crop" alt="Paisaje de montaña para un paquete turístico" loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition duration-700" />
+                <span className="absolute top-3 right-3 bg-amber-300 text-slate-950 font-extrabold text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md shadow-lg">Avión & Colectivo</span>
+              </div>
+              <div className="p-6">
+                <div className="flex items-center gap-2 text-emerald-400 text-xs font-semibold uppercase tracking-wider"><MapPin className="w-4 h-4" /> Turismo & Viajes</div>
+                <h3 className="text-xl font-bold text-white mt-2">Andina Viajes - Paquetes Turísticos</h3>
+                <p className="text-slate-400 text-sm mt-2">Destinos, transporte, fechas y pasajeros con consulta de paquetes por WhatsApp.</p>
+              </div>
+            </div>
+            <div className="p-6 pt-0">
+              <button onClick={() => setDemoActiva('turismo')} className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold py-3.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm shadow-lg shadow-emerald-500/20">
+                Ver Demo Live <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden hover:border-emerald-500/60 hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-500 flex flex-col justify-between group reveal-on-scroll hover:-translate-y-2">
+            <div>
+              <div className="relative aspect-video overflow-hidden bg-slate-950">
+                <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?q=80&w=800&auto=format&fit=crop" alt="Operación industrial de fabricación metalúrgica" loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition duration-700" />
+                <span className="absolute top-3 right-3 bg-amber-400 text-slate-950 font-extrabold text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md shadow-lg">Oil & Gas</span>
+              </div>
+              <div className="p-6">
+                <div className="flex items-center gap-2 text-emerald-400 text-xs font-semibold uppercase tracking-wider"><Wrench className="w-4 h-4" /> Industria & Energía</div>
+                <h3 className="text-xl font-bold text-white mt-2">NORTEK - Soluciones Industriales</h3>
+                <p className="text-slate-400 text-sm mt-2">Ingeniería metalúrgica, fabricación, montaje y mantenimiento para operaciones exigentes.</p>
+              </div>
+            </div>
+            <div className="p-6 pt-0">
+              <button onClick={() => setDemoActiva('metalurgica')} className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold py-3.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 text-sm shadow-lg shadow-emerald-500/20">
                 Ver Demo Live <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -920,6 +1032,14 @@ export default function App() {
           </div>
           <div className="space-y-4">
             <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl hover:border-emerald-500/40 transition">
+              <h3 className="font-bold text-white text-base">¿Qué servicios web ofrece timi.dev en Mendoza?</h3>
+              <p className="text-slate-400 text-sm mt-2">Diseño y desarrollo de landing pages, sitios web comerciales y catálogos o tiendas online para comercios, profesionales y pymes. Los proyectos pueden incluir diseño adaptable, SEO local e integración con WhatsApp.</p>
+            </div>
+            <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl hover:border-emerald-500/40 transition">
+              <h3 className="font-bold text-white text-base">¿Dónde está timi.dev?</h3>
+              <p className="text-slate-400 text-sm mt-2">timi.dev es un estudio de diseño y desarrollo web en Mendoza, Argentina. Podés consultar y coordinar tu proyecto por WhatsApp.</p>
+            </div>
+            <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl hover:border-emerald-500/40 transition">
               <h3 className="font-bold text-white text-base">¿Cuánto tiempo tarda el desarrollo de una web?</h3>
               <p className="text-slate-400 text-sm mt-2">El Plan Express se entrega en 5 días hábiles. Las webs comerciales o catálogos toman entre 7 y 12 días laborables.</p>
             </div>
@@ -962,9 +1082,9 @@ export default function App() {
       </footer>
 
       {/* BOTÓN FLOTANTE CON EFECTO PULSE / WING ANIMADO */}
-      <a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer" className="fixed bottom-6 right-6 z-50 hidden rounded-full border border-emerald-400 bg-emerald-500 p-4 text-slate-950 shadow-2xl transition-all duration-300 hover:scale-110 hover:bg-emerald-400 sm:flex items-center justify-center group" aria-label="WhatsApp">
+      <a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer" className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-4 z-[60] flex h-14 w-14 items-center justify-center rounded-full border border-emerald-400 bg-emerald-500 text-slate-950 shadow-2xl transition-all duration-300 hover:scale-110 hover:bg-emerald-400 sm:bottom-6 sm:right-6 sm:h-16 sm:w-16 group" aria-label="Contactar por WhatsApp">
         <span className="absolute -inset-1 rounded-full bg-emerald-500/30 animate-ping pointer-events-none"></span>
-        <MessageSquare className="w-6 h-6 relative z-10 fill-slate-950 group-hover:rotate-12 transition-transform" />
+        <MessageSquare className="relative z-10 h-6 w-6 fill-slate-950 transition-transform group-hover:rotate-12" />
       </a>
     </div>
   );

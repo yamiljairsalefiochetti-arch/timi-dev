@@ -1,0 +1,30 @@
+# timi.dev
+
+> Estudio de diseño y desarrollo web en Mendoza, Argentina. Crea sitios web rápidos y adaptables para comercios, profesionales y pymes.
+
+## Sitio oficial
+
+- https://timidev-ruddy.vercel.app/
+- Idioma principal: español de Argentina (es-AR).
+- Área local identificada en el sitio: Mendoza, Argentina.
+
+## Servicios
+
+- Diseño y desarrollo de landing pages.
+- Sitios web comerciales para empresas, profesionales y pymes.
+- Catálogos y tiendas online.
+- Integración de consultas y pedidos con WhatsApp.
+- Estructura SEO local y diseño adaptable a celulares.
+
+## Contacto y perfiles
+
+- WhatsApp: https://wa.me/5492616002822
+- Instagram: https://www.instagram.com/timi_dev404/
+- Facebook: https://www.facebook.com/Timi%20Dev
+
+## Enlaces útiles
+
+- Sitemap: https://timidev-ruddy.vercel.app/sitemap.xml
+- Robots: https://timidev-ruddy.vercel.app/robots.txt
+
+La información comercial, los precios y los plazos publicados en el sitio pueden cambiar. Confirmarlos directamente con timi.dev antes de citarlos.

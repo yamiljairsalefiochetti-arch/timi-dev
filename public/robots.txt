@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://timi.dev.vercel.app/sitemap.xml
+Sitemap: https://timidev-ruddy.vercel.app/sitemap.xml
