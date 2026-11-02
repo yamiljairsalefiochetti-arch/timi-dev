@@ -483,6 +483,9 @@ function TechDemo({ onVolver }) {
 // ==========================================
 // COMPONENTE PRINCIPAL TIMI.DEV (LANDING VIVA Y ANIMADA)
 // ==========================================
+const PRECIOS_PLANES = { express: 180000, pyme: 320000, catalogo: 550000 };
+const PRECIOS_EXTRAS = { seo: 45000, soporte: 35000, dominio: 25000 };
+
 export default function App() {
   const [demoActiva, setDemoActiva] = useState(null);
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -493,8 +496,89 @@ export default function App() {
   const [extraSoporte, setExtraSoporte] = useState(false);
   const [extraDominio, setExtraDominio] = useState(true);
 
-  const PRECIOS_PLANES = { express: 180000, pyme: 320000, catalogo: 550000 };
-  const PRECIOS_EXTRAS = { seo: 45000, soporte: 35000, dominio: 25000 };
+  useEffect(() => {
+    const modelContext = document.modelContext;
+    if (!modelContext?.registerTool) return;
+
+    const controller = new AbortController();
+    const tools = [
+      {
+        name: 'timi_get_services',
+        title: 'Consultar servicios de timi.dev',
+        description: 'Devuelve los servicios web que ofrece timi.dev en Argentina y su canal de contacto.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+          additionalProperties: false,
+        },
+        execute: async () => JSON.stringify({
+          services: [
+            'Landing pages',
+            'Sitios web comerciales',
+            'Catálogos y tiendas online',
+            'SEO local',
+            'Integración con WhatsApp',
+          ],
+          areaServed: 'Argentina',
+          contactUrl: 'https://wa.me/5492616002822',
+        }),
+      },
+      {
+        name: 'timi_estimate_website',
+        title: 'Estimar el precio de una web',
+        description: 'Calcula una estimación en pesos argentinos. No envía datos ni inicia una conversación.',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            plan: {
+              type: 'string',
+              enum: ['express', 'pyme', 'catalogo'],
+              description: 'Tipo de proyecto web.',
+            },
+            seo: { type: 'boolean', description: 'Incluir SEO local.' },
+            soporte: { type: 'boolean', description: 'Incluir soporte mensual.' },
+            dominio: { type: 'boolean', description: 'Incluir dominio y hosting.' },
+          },
+          required: ['plan'],
+          additionalProperties: false,
+        },
+        execute: async ({ plan, seo = false, soporte = false, dominio = false }) => {
+          const plans = {
+            express: { name: 'Landing Page Express', price: PRECIOS_PLANES.express },
+            pyme: { name: 'Web Pyme Comercial', price: PRECIOS_PLANES.pyme },
+            catalogo: { name: 'Catálogo / Tienda Digital', price: PRECIOS_PLANES.catalogo },
+          };
+          const selectedPlan = plans[plan];
+          if (!selectedPlan) throw new TypeError('El plan debe ser express, pyme o catalogo.');
+
+          const extras = [
+            ...(seo ? [{ name: 'SEO local', price: PRECIOS_EXTRAS.seo }] : []),
+            ...(soporte ? [{ name: 'Soporte mensual', price: PRECIOS_EXTRAS.soporte }] : []),
+            ...(dominio ? [{ name: 'Dominio y hosting', price: PRECIOS_EXTRAS.dominio }] : []),
+          ];
+
+          return JSON.stringify({
+            currency: 'ARS',
+            plan: selectedPlan,
+            extras,
+            total: selectedPlan.price + extras.reduce((total, extra) => total + extra.price, 0),
+            contactUrl: 'https://wa.me/5492616002822',
+            note: 'Estimación orientativa; confirmar alcance y precio con timi.dev.',
+          });
+        },
+      },
+    ];
+
+    for (const tool of tools) {
+      modelContext.registerTool(tool, { signal: controller.signal }).catch((error) => {
+        if (!controller.signal.aborted) {
+          console.error(`No se pudo registrar la herramienta WebMCP "${tool.name}".`, error);
+        }
+      });
+    }
+
+    return () => controller.abort();
+  }, []);
 
   const totalPresupuesto = PRECIOS_PLANES[planBase] +
     (extraSeo ? PRECIOS_EXTRAS.seo : 0) +
@@ -503,7 +587,7 @@ export default function App() {
 
   const enviarCotizacionWhatsApp = () => {
     const nombrePlan = planBase === 'express' ? 'Landing Page Express' : planBase === 'pyme' ? 'Web Pyme Comercial' : 'Tienda / Catálogo Digital';
-    let mensaje = `👋 ¡Hola timi.dev! Me interesa cotizar una página web para mi negocio en Mendoza.\n\n`;
+    let mensaje = `👋 ¡Hola timi.dev! Me interesa cotizar una página web para mi negocio en Argentina.\n\n`;
     mensaje += `📋 *Plan:* ${nombrePlan} ($${PRECIOS_PLANES[planBase].toLocaleString('es-AR')} ARS)\n`;
     if (extraSeo) mensaje += ` • SEO Local ($45.000)\n`;
     if (extraDominio) mensaje += ` • Dominio & Hosting ($25.000)\n`;
@@ -528,6 +612,10 @@ export default function App() {
       {/* Fondo Glow Dinámico */}
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-emerald-500/15 via-teal-500/5 to-transparent blur-3xl pointer-events-none z-0 animate-pulse"></div>
 
+      <a href="#contenido-principal" className="sr-only z-[100] rounded-lg bg-emerald-400 px-4 py-3 font-bold text-slate-950 focus:not-sr-only focus:fixed focus:left-4 focus:top-4">
+        Saltar al contenido
+      </a>
+
       {/* HEADER */}
       <header className="sticky top-0 z-40 backdrop-blur-md bg-slate-950/80 border-b border-slate-800/80 transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
@@ -542,6 +630,7 @@ export default function App() {
 
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-400">
             <a href="#ventajas" className="hover:text-emerald-400 transition-colors">Ventajas</a>
+            <a href="#sobre-nosotros" className="hover:text-emerald-400 transition-colors">Sobre timi.dev</a>
             <a href="#stack" className="hover:text-emerald-400 transition-colors">Tecnología</a>
             <a href="#portafolio" className="hover:text-emerald-400 transition-colors">Portafolio</a>
             <a href="#metodologia" className="hover:text-emerald-400 transition-colors">Metodología</a>
@@ -573,6 +662,7 @@ export default function App() {
           <nav id="mobile-navigation" className="grid grid-cols-2 gap-2 border-t border-slate-800 bg-slate-950/95 px-4 py-4 text-sm md:hidden">
             {[
               ['Ventajas', '#ventajas'],
+              ['Sobre timi.dev', '#sobre-nosotros'],
               ['Tecnología', '#stack'],
               ['Portafolio', '#portafolio'],
               ['Metodología', '#metodologia'],
@@ -591,8 +681,9 @@ export default function App() {
         )}
       </header>
 
+      <main id="contenido-principal" tabIndex="-1">
       {/* HERO SECTION CON ANIMACIÓN DENSAMENTE VISUAL */}
-      <section className="relative pt-12 pb-20 md:pt-24 md:pb-32 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
+      <section aria-labelledby="titulo-principal" className="relative pt-12 pb-20 md:pt-24 md:pb-32 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10">
         <div className="text-center max-w-3xl mx-auto reveal-on-scroll">
           
           <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs sm:text-sm font-medium mb-8 backdrop-blur-md shadow-inner shadow-emerald-500/20">
@@ -601,15 +692,15 @@ export default function App() {
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
             </span>
             <Sparkles className="w-4 h-4 text-emerald-400" />
-            Agencia de Desarrollo Web en Mendoza, Argentina
+            Diseño y desarrollo web en Argentina
           </div>
 
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-tight">
+          <h1 id="titulo-principal" className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-tight">
             Páginas web rápidas que <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-500 bg-clip-text text-transparent animate-pulse">atraen clientes</span> a tu negocio.
           </h1>
 
           <p className="mt-6 text-lg sm:text-xl text-slate-300 leading-relaxed font-normal">
-            Diseñamos y desarrollamos sitios web para negocios de Mendoza, con experiencia adaptable a celulares, estructura SEO local e integración comercial con WhatsApp.
+            Diseñamos y desarrollamos sitios web para negocios de Argentina, con experiencia adaptable a celulares, estructura SEO local e integración comercial con WhatsApp.
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -647,8 +738,8 @@ export default function App() {
       <section id="ventajas" className="py-20 bg-slate-900/40 border-y border-slate-800/60 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16 reveal-on-scroll">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-emerald-400 font-mono">¿Por qué timi.dev?</h2>
-            <p className="text-3xl sm:text-4xl font-black text-white mt-2">Tecnología moderna pensada para ventas reales.</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-emerald-400 font-mono">¿Por qué timi.dev?</p>
+            <h2 className="text-3xl sm:text-4xl font-black text-white mt-2">Tecnología moderna pensada para ventas reales.</h2>
           </div>
 
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-4">
@@ -674,10 +765,10 @@ export default function App() {
       <section id="servicios-web" className="border-b border-slate-800/60 bg-slate-900/20 py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center reveal-on-scroll">
-            <span className="text-xs font-bold uppercase tracking-widest text-emerald-400 font-mono">Diseño web en Mendoza</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-emerald-400 font-mono">Diseño web en Argentina</span>
             <h2 className="mt-2 text-3xl font-extrabold text-white sm:text-4xl">Soluciones web para negocios que quieren crecer.</h2>
             <p className="mt-4 text-sm leading-relaxed text-slate-400 sm:text-base">
-              timi.dev diseña y desarrolla páginas web para comercios, profesionales y pymes de Mendoza, Argentina. Cada proyecto se adapta a celulares y puede integrar consultas o pedidos directos por WhatsApp.
+              timi.dev diseña y desarrolla páginas web para comercios, profesionales y pymes de toda Argentina, con base en Mendoza. Cada proyecto se adapta a celulares y puede integrar consultas o pedidos directos por WhatsApp.
             </p>
           </div>
           <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -696,6 +787,33 @@ export default function App() {
         </div>
       </section>
 
+      <section id="sobre-nosotros" aria-labelledby="titulo-sobre-nosotros" className="border-b border-slate-800/60 py-16 sm:py-20">
+        <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
+          <p className="text-xs font-bold uppercase tracking-widest text-emerald-400 font-mono">Sobre nosotros</p>
+          <h2 id="titulo-sobre-nosotros" className="mt-2 text-3xl font-extrabold text-white sm:text-4xl">Un estudio de Mendoza con proyectos en toda Argentina.</h2>
+          <p className="mt-5 text-base leading-relaxed text-slate-300">
+            timi.dev nace en Mendoza para ayudar a los negocios a evitar experiencias digitales lentas y procesos de compra innecesariamente complejos. Nuestra misión es crear infraestructura web ágil, clara y moderna, priorizando el uso desde celulares y el contacto directo entre cada negocio y sus clientes.
+          </p>
+          <p className="mt-4 text-base leading-relaxed text-slate-400">
+            Diseñamos landing pages, sitios comerciales y catálogos digitales para comercios minoristas, gastronomía, servicios técnicos y profesionales. Según el alcance acordado, los proyectos pueden incluir pedidos estructurados por WhatsApp y herramientas para que el negocio gestione directamente sus ventas.
+          </p>
+          <div className="mt-8 grid gap-4 text-left sm:grid-cols-2">
+            <article className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
+              <h3 className="font-bold text-white">Tecnología según cada proyecto</h3>
+              <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                Trabajamos principalmente con React, Vite y Tailwind CSS. Cuando el alcance lo requiere, podemos integrar servicios con Node.js, Express y plataformas de terceros. La infraestructura y las herramientas se definen en cada presupuesto.
+              </p>
+            </article>
+            <article className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
+              <h3 className="font-bold text-white">Trabajo claro y por etapas</h3>
+              <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                Definimos objetivos y alcance antes de desarrollar, revisamos la experiencia en dispositivos móviles y coordinamos la publicación con el cliente. Los plazos, entregables, revisiones y soporte se confirman en la propuesta de cada proyecto.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
       {/* STACK TECNOLÓGICO */}
       <section id="stack" className="py-20 border-b border-slate-800/60 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -707,7 +825,7 @@ export default function App() {
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center reveal-on-scroll">
             <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl hover:border-emerald-500/40 transition duration-300">
-              <div className="text-emerald-400 font-mono font-bold text-lg mb-1">React 18</div>
+              <div className="text-emerald-400 font-mono font-bold text-lg mb-1">React 19</div>
               <p className="text-xs text-slate-400">Interfaces ultra fluidas</p>
             </div>
             <div className="bg-slate-900/60 border border-slate-800 p-6 rounded-2xl hover:border-emerald-500/40 transition duration-300">
@@ -939,7 +1057,7 @@ export default function App() {
                 <div className="mt-6 mb-6"><span className="text-3xl font-black text-emerald-400">$320.000</span><span className="text-slate-400 text-sm"> ARS</span></div>
                 <ul className="space-y-3 text-sm text-slate-300 border-t border-slate-800 pt-6">
                   <li className="flex items-center gap-2.5"><Check className="w-4 h-4 text-emerald-400" /> Hasta 4 Secciones personalizadas</li>
-                  <li className="flex items-center gap-2.5"><Check className="w-4 h-4 text-emerald-400" /> Optimización SEO para Google Mendoza</li>
+                  <li className="flex items-center gap-2.5"><Check className="w-4 h-4 text-emerald-400" /> Optimización SEO local</li>
                   <li className="flex items-center gap-2.5"><Check className="w-4 h-4 text-emerald-400" /> Galería de servicios y contacto</li>
                 </ul>
               </div>
@@ -995,7 +1113,7 @@ export default function App() {
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">2. Extras Opcionales:</label>
                 <div className="space-y-2">
                   <label className="flex items-center justify-between p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 cursor-pointer hover:border-slate-700 transition">
-                    <div className="flex items-center gap-3"><input type="checkbox" checked={extraSeo} onChange={e => setExtraSeo(e.target.checked)} className="accent-emerald-500 w-4 h-4 cursor-pointer" /><span className="text-sm font-medium text-slate-300">SEO Google Maps & Mendoza</span></div>
+                    <div className="flex items-center gap-3"><input type="checkbox" checked={extraSeo} onChange={e => setExtraSeo(e.target.checked)} className="accent-emerald-500 w-4 h-4 cursor-pointer" /><span className="text-sm font-medium text-slate-300">SEO local y Google Maps</span></div>
                     <span className="text-xs font-mono text-emerald-400">+$45.000 ARS</span>
                   </label>
                   <label className="flex items-center justify-between p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 cursor-pointer hover:border-slate-700 transition">
@@ -1032,16 +1150,16 @@ export default function App() {
           </div>
           <div className="space-y-4">
             <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl hover:border-emerald-500/40 transition">
-              <h3 className="font-bold text-white text-base">¿Qué servicios web ofrece timi.dev en Mendoza?</h3>
-              <p className="text-slate-400 text-sm mt-2">Diseño y desarrollo de landing pages, sitios web comerciales y catálogos o tiendas online para comercios, profesionales y pymes. Los proyectos pueden incluir diseño adaptable, SEO local e integración con WhatsApp.</p>
+              <h3 className="font-bold text-white text-base">¿Qué servicios web ofrece timi.dev en Argentina?</h3>
+              <p className="text-slate-400 text-sm mt-2">Diseño y desarrollo de landing pages, sitios web comerciales y catálogos o tiendas online para comercios, profesionales y pymes de todo el país. Los proyectos pueden incluir diseño adaptable, SEO local e integración con WhatsApp.</p>
             </div>
             <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl hover:border-emerald-500/40 transition">
               <h3 className="font-bold text-white text-base">¿Dónde está timi.dev?</h3>
-              <p className="text-slate-400 text-sm mt-2">timi.dev es un estudio de diseño y desarrollo web en Mendoza, Argentina. Podés consultar y coordinar tu proyecto por WhatsApp.</p>
+              <p className="text-slate-400 text-sm mt-2">timi.dev tiene base en Mendoza y trabaja con negocios de toda Argentina. Podés consultar y coordinar tu proyecto por WhatsApp.</p>
             </div>
             <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl hover:border-emerald-500/40 transition">
               <h3 className="font-bold text-white text-base">¿Cuánto tiempo tarda el desarrollo de una web?</h3>
-              <p className="text-slate-400 text-sm mt-2">El Plan Express se entrega en 5 días hábiles. Las webs comerciales o catálogos toman entre 7 y 12 días laborables.</p>
+              <p className="text-slate-400 text-sm mt-2">Como referencia, el proceso estándar se estima en 10 días laborables desde la recepción de los materiales y la confirmación del alcance. El plazo final depende del proyecto y se detalla en el presupuesto.</p>
             </div>
             <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl hover:border-emerald-500/40 transition">
               <h3 className="font-bold text-white text-base">¿Tengo que pagar mantenimiento mensual obligatoriamente?</h3>
@@ -1054,9 +1172,10 @@ export default function App() {
           </div>
         </div>
       </section>
+      </main>
 
       {/* FOOTER */}
-      <footer className="border-t border-slate-800/80 bg-slate-950 py-12 relative z-10">
+      <footer id="contacto" className="border-t border-slate-800/80 bg-slate-950 py-12 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
           <div className="flex items-center gap-3">
             <div className="bg-emerald-500/10 border border-emerald-500/30 p-2 rounded-xl text-emerald-400"><Code2 className="w-5 h-5" /></div>
@@ -1064,6 +1183,11 @@ export default function App() {
           </div>
           <p className="text-xs text-slate-500">© 2026 timi.dev — Desarrollo de páginas web de alto rendimiento. Mendoza, Argentina.</p>
           <div className="flex flex-wrap items-center justify-center gap-4">
+            <a href="#sobre-nosotros" className="text-xs text-slate-400 transition hover:text-white">Sobre timi.dev</a>
+            <a href="https://wa.me/5492616002822" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-400 transition hover:text-white">Contacto</a>
+            <a href="mailto:timi.dev404@gmail.com" className="text-xs text-slate-400 transition hover:text-white">timi.dev404@gmail.com</a>
+            <a href="/aviso-legal/" className="text-xs text-slate-400 transition hover:text-white">Aviso legal</a>
+            <a href="/privacidad/" className="text-xs text-slate-400 transition hover:text-white">Privacidad</a>
             <a href="https://www.facebook.com/Timi%20Dev" target="_blank" rel="noopener noreferrer" aria-label="Facebook de timi.dev" className="inline-flex items-center gap-2 text-xs text-slate-400 transition hover:text-white">
               <span aria-hidden="true" className="font-sans text-base font-black leading-none text-emerald-400">f</span>
               Facebook

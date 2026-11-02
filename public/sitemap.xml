@@ -3,4 +3,10 @@
   <url>
     <loc>https://timidev-ruddy.vercel.app/</loc>
   </url>
+  <url>
+    <loc>https://timidev-ruddy.vercel.app/aviso-legal/</loc>
+  </url>
+  <url>
+    <loc>https://timidev-ruddy.vercel.app/privacidad/</loc>
+  </url>
 </urlset>
