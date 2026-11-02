@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
-  <title id="title">timi.dev — Diseño web en Mendoza</title>
-  <desc id="description">Diseño y desarrollo web para comercios, profesionales y pymes en Mendoza, Argentina.</desc>
+  <title id="title">timi.dev — Diseño web en Argentina</title>
+  <desc id="description">Diseño y desarrollo web para comercios, profesionales y pymes de Argentina, con base en Mendoza.</desc>
   <defs>
     <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#020617"/>
@@ -22,5 +22,5 @@
   <text x="80" y="414" fill="url(#accent)" font-family="Arial, Helvetica, sans-serif" font-size="58" font-weight="700">mejor conectado.</text>
   <text x="84" y="481" fill="#cbd5e1" font-family="Arial, Helvetica, sans-serif" font-size="26">Webs rápidas para comercios y pymes</text>
   <rect x="84" y="530" width="330" height="2" fill="#34d399" opacity=".75"/>
-  <text x="84" y="573" fill="#94a3b8" font-family="Arial, Helvetica, sans-serif" font-size="21">Mendoza, Argentina · timidev-ruddy.vercel.app</text>
+  <text x="84" y="573" fill="#94a3b8" font-family="Arial, Helvetica, sans-serif" font-size="21">Proyectos en Argentina · timidev-ruddy.vercel.app</text>
 </svg>
